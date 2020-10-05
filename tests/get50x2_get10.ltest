@@ -1,0 +1,19 @@
+for i in {1..50}; do
+   curl -si localhost:8080/^ &>/dev/null & curl -si localhost:8081/^ &>/dev/null &
+done
+wait
+sleep 5
+for i in {1..10}; do
+   curl -si localhost:1234/^ &>/dev/null &
+done
+wait
+hc0=$(curl -s localhost:8080/healthcheck)
+hc1=$(curl -s localhost:8081/healthcheck)
+hc2=$(curl -s localhost:8082/healthcheck)
+read hc0e hc0t <<<${hc0//[^0-9]/ }
+read hc1e hc1t <<<${hc1//[^0-9]/ }
+read hc2e hc2t <<<${hc2//[^0-9]/ }
+printf "$hc0\n$hc1\n$hc2\n"
+diff <(printf "$hc0e") <(printf "50") && \
+diff <(printf "$hc1e") <(printf "50") && \
+diff <(printf "$hc2e") <(printf "10")
